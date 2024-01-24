@@ -71,6 +71,18 @@ def _get_s3(self):
 def _set_s3(self, s3):
   setattr(self, '__s3', s3)
 
+def _delete_s3_prefix(self):
+  if hasattr(self, '__s3_prefix'):
+    del self.__s3_prefix
+
+
+def _get_s3_prefix(self):
+  return getattr(self, '__s3_prefix', None)
+
+
+def _set_s3_prefix(self, s3_prefix):
+  setattr(self, '__s3_prefix', s3_prefix)
+
 
 def _set_body(self, body):
   assert isinstance(body, str)
@@ -120,6 +132,9 @@ def _store_in_s3(self, queue_url, message_attributes, message_body):
     message_attributes[RESERVED_ATTRIBUTE_NAME] = {}
     message_attributes[RESERVED_ATTRIBUTE_NAME]['DataType'] = 'Number'
     message_attributes[RESERVED_ATTRIBUTE_NAME]['StringValue'] = str(len(encoded_body))
+    if hasattr(self, '__s3_prefix'):
+      s3_key = self.s3_prefix + str(uuid4())
+    else:
     s3_key = str(uuid4())
     self.s3.Object(self.large_payload_support, s3_key).put(**self._create_s3_put_object_params(encoded_body, queue_url))
     message_body = jsondumps([MESSAGE_POINTER_CLASS, {'s3BucketName': self.large_payload_support, 's3Key': s3_key}], separators=(',', ':'))
@@ -165,6 +180,11 @@ def _add_custom_attributes(class_attributes):
     _get_s3,
     _set_s3,
     _delete_s3
+  )
+  class_attributes['s3_prefix'] = property(
+    _get_s3_prefix,
+    _set_s3_prefix,
+    _delete_s3_prefix
   )
   class_attributes['_create_s3_put_object_params'] = _create_s3_put_object_params
   class_attributes['_is_large_message'] = _is_large_message
