@@ -135,7 +135,7 @@ def _store_in_s3(self, queue_url, message_attributes, message_body):
     if hasattr(self, '__s3_prefix'):
       s3_key = self.s3_prefix + str(uuid4())
     else:
-    s3_key = str(uuid4())
+      s3_key = str(uuid4())
     self.s3.Object(self.large_payload_support, s3_key).put(**self._create_s3_put_object_params(encoded_body, queue_url))
     message_body = jsondumps([MESSAGE_POINTER_CLASS, {'s3BucketName': self.large_payload_support, 's3Key': s3_key}], separators=(',', ':'))
   return message_attributes, message_body
